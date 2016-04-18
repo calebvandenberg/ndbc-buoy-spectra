@@ -189,7 +189,7 @@ def main():
         elif args['datatype'] == 'hp':
             print bs.jsonify('hp')
     else:
-        if args['datatype'] == 'spectra':
+        if args['datatype'] == 'spectra' or args['datatype'] is None:
             data =  bs.spectra
         elif args['datatype'] == '9band':
             data = bs.nineBand()
