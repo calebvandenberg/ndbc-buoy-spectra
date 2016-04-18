@@ -46,6 +46,19 @@ if (app.get('env') === 'development') {
   });
 }
 
+var PythonShell = require('python-shell');
+
+var options = {
+  mode: 'text',
+  scriptPath: './ndbc.py'
+};
+
+PythonShell.run('./ndbc.py', function (err, results) {
+  if (err) throw err;
+  // results is an array consisting of messages collected during execution
+  console.log('results: %j', results);
+});
+
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
