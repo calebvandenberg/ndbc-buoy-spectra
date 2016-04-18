@@ -46,6 +46,8 @@ if (app.get('env') === 'development') {
   });
 }
 
+
+//Python script call. This should be working but its not.
 var PythonShell = require('python-shell');
 
 var options = {
