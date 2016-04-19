@@ -47,15 +47,15 @@ if (app.get('env') === 'development') {
 }
 
 
-//Python script call. This should be working but its not.
 var PythonShell = require('python-shell');
 
 var options = {
   mode: 'text',
-  scriptPath: './ndbc.py'
+  scriptPath: './',
+  args: [46232]
 };
 
-PythonShell.run('./ndbc.py', function (err, results) {
+PythonShell.run('ndbc.py', options, function (err, results) {
   if (err) throw err;
   // results is an array consisting of messages collected during execution
   console.log('results: %j', results);
