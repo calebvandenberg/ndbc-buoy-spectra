@@ -52,7 +52,7 @@ var PythonShell = require('python-shell');
 var options = {
   mode: 'text',
   scriptPath: './',
-  args: [46232]
+  buoy: '46232'
 };
 
 PythonShell.run('ndbc.py', options, function (err, results) {
