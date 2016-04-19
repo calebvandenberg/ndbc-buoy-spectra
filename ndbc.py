@@ -174,8 +174,8 @@ def main():
 
 
     parser = argparse.ArgumentParser(description='Process data from National Data Buoy Center (ndbc) buoys')
-    parser.add_argument('--buoy', '-b', help='Enter the buoy you want to access')
-    parser.add_argument('--datasource', '-ds', choices=['http', 'local'], help='use http or local for remote / local data file')
+    parser.add_argument('--buoy', '-b', default='46232', help='Enter the buoy you want to access')
+    parser.add_argument('--datasource', '-ds', default='http', choices=['http', 'local'], help='use http or local for remote / local data file')
     parser.add_argument('--json', action='store_true', help='return json data')
     parser.add_argument('--datatype', '-dt', choices=['spectra', '9band', 'hp'], help='returns raw buoy spectra, wave heights in 9 bands of wave periods, or wave heights and corresponding period')
 
@@ -189,6 +189,7 @@ def main():
         elif args['datatype'] == 'hp':
             print bs.jsonify('hp')
     else:
+        data = ''
         if args['datatype'] == 'spectra' or args['datatype'] is None:
             data =  bs.spectra
         elif args['datatype'] == '9band':
@@ -200,3 +201,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
