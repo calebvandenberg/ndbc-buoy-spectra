@@ -73,7 +73,11 @@ function flagGen(args) {
   return flags;
 }
 
+<<<<<<< HEAD
+var pyPath = './';
+=======
 var pyPath = '/var/scripts';
+>>>>>>> master
 var buoyData = ''
 var execstr = 'python ' + path.join(pyPath, 'ndbc.py') + flagGen(pyArgs);
 //console.log(execstr);
