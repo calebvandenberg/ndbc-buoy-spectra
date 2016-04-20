@@ -49,17 +49,18 @@ if (app.get('env') === 'development') {
 
 var PythonShell = require('python-shell');
 
-var options = {
-  mode: 'text',
-  pythonOptions: ['-b'],
-  scriptPath: './',
-  args: [46232]
-};
+var pyshell = new PythonShell('./ndbc.py', { mode: 'json '});
+pyshell.send({ pythonOptions: ['-b'], args: ['46232'] });
 
-PythonShell.run('ndbc.py', options, function (err, results) {
+pyshell.on('message', function (message) {
+  // received a message sent from the Python script (a simple "print" statement) 
+  console.log(message);
+});
+ 
+// end the input stream and allow the process to exit 
+pyshell.end(function (err) {
   if (err) throw err;
-  // results is an array consisting of messages collected during execution
-  console.log('results: %j', results);
+  console.log('finished');
 });
 
 // production error handler
