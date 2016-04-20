@@ -76,7 +76,6 @@ function flagGen(args) {
 var pyPath = './';
 var buoyData = ''
 var execstr = 'python ' + path.join(pyPath, 'ndbc.py') + flagGen(pyArgs);
-//console.log(execstr);
 var child = exec(execstr, function(error, stdout, stderr) {
   if (error) {
     console.log(stderr)
