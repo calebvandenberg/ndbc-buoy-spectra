@@ -1,5 +1,5 @@
 __author__ = 'Caleb'
-from urllib2 import urlopen
+from urllib2 import urlopen, HTTPError, URLError
 import datetime
 from math import sqrt
 import numpy as np
@@ -9,16 +9,31 @@ import json
 import argparse
 
 def localDataSpec(buoy):
-    f = open(path.join('c:\\node', buoy + '.data_spec'), 'r')
-    d = f.read(1024)
-    f.close()
-    return d.split('\n')[1]
+    try:
+        f = open(path.join('c:\\node', buoy + '.data_spec'), 'r')
+        d = f.read(1024)
+        f.close()
+        return d.split('\n')[1]
+    except IOError as e:
+        sys.stderr.write(str(e))
+        sys.exit(1)
 
 def httpDataSpec(buoy):
     dataUrl = ''.join(['http://www.ndbc.noaa.gov/data/realtime2/', buoy, '.data_spec'])
-    response = urlopen(dataUrl)
+    try:
+        response = urlopen(dataUrl)
+    except HTTPError, e:
+        sys.stderr.write(str(e))
+        sys.exit(1)
+    except URLError, e:
+        sys.stderr.write(str(e))
+        sys.exit(1)
+    except Exception as e:
+        sys.stderr.write(str(e))
+        sys.exit(1)
     d = response.read(1024)
     return d.split('\n')[1]
+
 
 def arrayDataSpec(ds, e=[0,0,0,.028,.154,1.148,.28,.28,.168,.336,.924,1.4,.63,1.078,.756,1.302,.476,.364,
      .21,.196,.308,.266,.168,.154,.266,.252,.154,.224,.126,.112,.07,.07,.056,.042,.042,.028,.028,
@@ -96,12 +111,17 @@ def e():
 class ndbcSpectra(object):
     def __init__(self, buoy='46232',datasource='http',e=[], **kwargs):
         self.buoy = buoy
-        if datasource is 'local':
+        if datasource == 'local':
             self.data = localDataSpec(buoy)
         else:
             self.data = httpDataSpec(buoy)
-        self.Hs = 0
         self.el = []
+
+        u = kwargs.get('units', 'ft') # default is to convert m to ft
+        if u in ['m', 'metric', 'meters']:
+            self.units = 1
+        else:
+            self.units = 3.28
         td = self.data[:23].split()
         self.timestamp = datetime.datetime(int(td[0]),int(td[1]),int(td[2]),int(td[3]))
         self.json = json.dumps({'buoy':self.buoy,'timestamp':self.timestamp.isoformat()})
@@ -112,10 +132,11 @@ class ndbcSpectra(object):
             ds = data_spec(self.data)
 
         self.spectra = np.array(ds,[('e', 'float16'),('f','float16'),('b','float16')])
+        self.Hs = self.units*4*sqrt(np.sum(self.spectra['e']*self.spectra['b']))
         self.json = self.jsonify()
 
     def jsonify(self, dataType='spectra'):
-        js = {'timestamp': self.timestamp.isoformat(' '), 'buoy': self.buoy}
+        js = {'timestamp': self.timestamp.isoformat(' '), 'buoy': self.buoy, 'disclaimer': "Data in this object has not been validated and should be considered a placeholder"}
         jsList = []
         digits = 3
         if dataType is 'spectra':
@@ -143,7 +164,7 @@ class ndbcSpectra(object):
         waverider buoys return 64 bands, others return ~46"""
         # hp = 3.28*4*np.sqrt(spectra2['e']*spectra2['b'])
         spectra = self.spectra
-        return np.column_stack((3.28*4*np.sqrt(spectra['e']*spectra['b']), 1/spectra['f']))
+        return np.column_stack((self.units*4*np.sqrt(spectra['e']*spectra['b']), 1/spectra['f']))
 
     def nineBand(self):
         #                                   (0.04545-0.0425)/0.005 = 0.59 or 59%
@@ -157,8 +178,7 @@ class ndbcSpectra(object):
         while fence < 9:
             energyList.append(band(spectra, (nineBands[fence], nineBands[fence+1])) * 10000 * .005)
             fence +=1
-        self.el = [round(2*4*.0328*sqrt(int(v)), 2) for v in energyList]
-        self.Hs = 3.28*4*sqrt(np.sum(spectra['e']*spectra['b']))
+        self.el = [round(2*4*self.units*.01*sqrt(int(v)), 2) for v in energyList]
         if __name__ != "__main__":
             print __name__
             print energyList
@@ -169,18 +189,18 @@ class ndbcSpectra(object):
         return self.el
 
 def main():
-    # if argv is None:
-    #     argv = sys.argv[1]
-
-
     parser = argparse.ArgumentParser(description='Process data from National Data Buoy Center (ndbc) buoys')
     parser.add_argument('--buoy', '-b', default='46232', help='Enter the buoy you want to access')
     parser.add_argument('--datasource', '-ds', default='http', choices=['http', 'local'], help='use http or local for remote / local data file')
     parser.add_argument('--json', action='store_true', help='return json data')
     parser.add_argument('--datatype', '-dt', choices=['spectra', '9band', 'hp'], help='returns raw buoy spectra, wave heights in 9 bands of wave periods, or wave heights and corresponding period')
+    parser.add_argument('--units', '-u', choices=['m','metric','meters','feet','english','ft'], default='feet', help='Choose the units of measurement for wave heights')
 
     args = vars(parser.parse_args())
     bs = ndbcSpectra(**args)
+    units = 3.28
+    if args['units'] in ['m','metric','meters']:
+        units = 1
     if args['json']:
         if args['datatype'] == 'spectra' or args['datatype'] is None:
             print bs.json
@@ -198,6 +218,7 @@ def main():
             data = bs.heightPeriod()
         print data
         return data
+
 
 if __name__ == "__main__":
     main()
