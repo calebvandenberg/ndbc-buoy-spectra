@@ -4,9 +4,9 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var exec = require('child_process').exec;
 
 var app = express();
 
@@ -46,22 +46,61 @@ if (app.get('env') === 'development') {
   });
 }
 
+var pyArgs = {
+  // make arguments that take no parameters (ie, --json) true or false
+  "buoy": '46232',
+  "datasourceno": 'http',
+  "json": true,
+  "datatype": "spectra",
+  "units": 'ft'
+};
+//example
+pyArgs.datatype = '9band';
 
-var PythonShell = require('python-shell');
+function flagGen(args) {
+  var flags = '';
+  for (var a in args) {
+    if (args.hasOwnProperty(a)) {
+      if (typeof(pyArgs[a]) == 'string'){
+        flags += " --" + a + ' ' + pyArgs[a];
+      }
+      else {
+        if (pyArgs[a] == true)
+          flags += ' --' + a;
+      }
+    }
+  }
+  return flags;
+}
 
-var pyshell = new PythonShell('./ndbc.py', { mode: 'json '});
-pyshell.send({ pythonOptions: ['-b'], args: ['46232'] });
-
-pyshell.on('message', function (message) {
-  // received a message sent from the Python script (a simple "print" statement) 
-  console.log(message);
+var pyPath = '/var/scripts';
+var buoyData = ''
+var execstr = 'python ' + path.join(pyPath, 'ndbc.py') + flagGen(pyArgs);
+//console.log(execstr);
+var child = exec(execstr, function(error, stdout, stderr) {
+  if (error) {
+    console.log(stderr)
+  }
+  else {
+    buoyData= JSON.parse(stdout);
+    console.log(buoyData);
+  }
 });
- 
-// end the input stream and allow the process to exit 
-pyshell.end(function (err) {
-  if (err) throw err;
-  console.log('finished');
-});
+
+//var PythonShell = require('python-shell');
+//
+//var options = {
+//  mode: 'text',
+//  pythonOptions: ['-b'],
+//  scriptPath: './',
+//  args: [46232]
+//};
+//
+//PythonShell.run('ndbc.py', options, function (err, results) {
+//  if (err) throw err;
+//  // results is an array consisting of messages collected during execution
+//  console.log('results: %j', results);
+//});
 
 // production error handler
 // no stacktraces leaked to user
