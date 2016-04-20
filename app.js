@@ -49,7 +49,7 @@ if (app.get('env') === 'development') {
 var pyArgs = {
   // make arguments that take no parameters (ie, --json) true or false
   "buoy": '46232',
-  "datasourceno": 'http',
+  "datasource": 'http',
   "json": true,
   "datatype": "spectra",
   "units": 'ft'
@@ -73,7 +73,7 @@ function flagGen(args) {
   return flags;
 }
 
-var pyPath = '/var/scripts';
+var pyPath = './';
 var buoyData = ''
 var execstr = 'python ' + path.join(pyPath, 'ndbc.py') + flagGen(pyArgs);
 //console.log(execstr);
