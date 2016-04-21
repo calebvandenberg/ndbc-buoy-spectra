@@ -40,6 +40,7 @@ function run_script(){
       console.log(buoyData);
     }
   });
+  return buoyData;
 }
 
 module.exports.run_script = run_script;
