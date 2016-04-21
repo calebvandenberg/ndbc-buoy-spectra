@@ -4,6 +4,8 @@ var path = require('path');
 var exec = require('child_process').exec;
 
 
+
+
 var pyArgs = {
   // make arguments that take no parameters (ie, --json) true or false
   "buoy": '46232',
@@ -44,9 +46,10 @@ var child = exec(execstr, function(error, stdout, stderr) {
   }
 });
 
-/* GET home page. */
+/* GET buoy page. */
 router.get('/', function(req, res, next) {
-	res.send(buoyData);
+  var buoy_id = req.query.buoy_id;
+	res.send(buoy_id);
 });
 
 
