@@ -86,21 +86,6 @@ var child = exec(execstr, function(error, stdout, stderr) {
   }
 });
 
-//var PythonShell = require('python-shell');
-//
-//var options = {
-//  mode: 'text',
-//  pythonOptions: ['-b'],
-//  scriptPath: './',
-//  args: [46232]
-//};
-//
-//PythonShell.run('ndbc.py', options, function (err, results) {
-//  if (err) throw err;
-//  // results is an array consisting of messages collected during execution
-//  console.log('results: %j', results);
-//});
-
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
