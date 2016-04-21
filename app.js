@@ -6,7 +6,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
-var exec = require('child_process').exec;
 
 var app = express();
 
@@ -45,46 +44,6 @@ if (app.get('env') === 'development') {
     });
   });
 }
-
-var pyArgs = {
-  // make arguments that take no parameters (ie, --json) true or false
-  "buoy": '46232',
-  "datasource": 'http',
-  "json": true,
-  "datatype": "spectra",
-  "units": 'ft'
-};
-//example
-pyArgs.datatype = '9band';
-
-function flagGen(args) {
-  var flags = '';
-  for (var a in args) {
-    if (args.hasOwnProperty(a)) {
-      if (typeof(pyArgs[a]) == 'string'){
-        flags += " --" + a + ' ' + pyArgs[a];
-      }
-      else {
-        if (pyArgs[a] == true)
-          flags += ' --' + a;
-      }
-    }
-  }
-  return flags;
-}
-
-var pyPath = './';
-var buoyData = ''
-var execstr = 'python ' + path.join(pyPath, 'ndbc.py') + flagGen(pyArgs);
-var child = exec(execstr, function(error, stdout, stderr) {
-  if (error) {
-    console.log(stderr)
-  }
-  else {
-    buoyData= JSON.parse(stdout);
-    console.log(buoyData);
-  }
-});
 
 // production error handler
 // no stacktraces leaked to user
