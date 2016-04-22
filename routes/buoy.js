@@ -8,8 +8,8 @@ var set_flags = require('./set_flags');
 /* GET buoy page. */
 router.get('/', function(req, res, next) {
   var buoy_id = req.query.buoy_id;
-  set_flags.run_script();
-	res.send(buoy_id);
+  var buoyData = set_flags.run_script();
+	res.send(set_flags.run_script());
 });
 
 
