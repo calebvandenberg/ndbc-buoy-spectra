@@ -18,8 +18,12 @@ def localDataSpec(buoy):
         sys.stderr.write(str(e))
         sys.exit(1)
 
-def httpDataSpec(buoy):
-    dataUrl = ''.join(['http://www.ndbc.noaa.gov/data/realtime2/', buoy, '.data_spec'])
+def httpDataSpec(buoy, dataType='data_spec'):
+    """fetches most recent buoy spectra observation from ndbc
+       buoy id - the buoy
+       dataType - can be 'data_spec', 'swdir', or 'swdir2' for energy, mean wave direction, or primary wave direction respectively"""
+
+    dataUrl = ''.join(['http://www.ndbc.noaa.gov/data/realtime2/', buoy, '.', dataType])
     try:
         response = urlopen(dataUrl)
     except HTTPError, e:
@@ -43,11 +47,21 @@ def arrayDataSpec(ds, e=[0,0,0,.028,.154,1.148,.28,.28,.168,.336,.924,1.4,.63,1.
     return newds
 
 def data_spec(datas):
+    """returns a list of tuples for each frequency band from raw data dump
+    datas is straight out of httpDataSpec
+    coded for energy but works with wave direction too.
+    returns energy/direction, frequency, and bandwidth
     # sep_freq = '9.999'
     # datas = data.split(sep_freq)[1]
-    # bandwidths = [.005,.0075,.01,.015,.2]
+    # bandwidths = [.005,.0075,.01,.015,.2]"""
+
     l = []
-    datas = datas[23:].split(') ')
+    # semi-hacky way of determining if data is energy or direction
+    if datas.find('(') > 23:
+        dstart = 23
+    else:
+        dstart = 16
+    datas = datas[dstart:].split(') ')
     i=0
     while i < len(datas):
     # for i in datas.split(') '):
@@ -69,44 +83,71 @@ def data_spec(datas):
 
 def band(spec, fences):
     """spec is multidim numpy array, fences is tuple containing high and low frequency for band"""
+    # todo multiply e by bandwidth at each step instead of after function return
+    print "high / low freq fences: " + str(round(1.0/fences[1], 1)) + "(" + str(round(fences[1], 6)) + ")" \
+          + ' ' + str(round(1.0/fences[0], 1)) + "(" + str(round(fences[0], 6)) + ")"
     e = spec['e']
     f = spec['f']
     b = spec['b']
     i = 0
-    while i < len(f):
-        if round(f[i], 3) >= fences[1]:
-            i -= 1
-            # print f[i], i
-            break
-        i+=1
-    fend = f[i] - .5 * b[i]
-    partial1 = fences[1] - fend
-    partial1percent = partial1 / b[i]
-    partial1e = e[i] * partial1percent
+    if fences[1] == spec['f'][-1]:        # this is the shortest frequency so gonna use all of it
+        partial1percent = 1
+    else:
+        while i < len(f):
+            fend = f[i] - .5 * b[i]       # get low frequency / high period end of frequency band
+            if round(fend, 3) > fences[1]:
+                # i -= 1
+                break
+            elif round(fend, 3) == fences[1]:
+                # print f[i], i
+                i += 1
+                break                     # i is index of last full band now
+            i+=1
+        partial1 = fend - fences[1]       # partial1 is band of spectra between low end of freq band and the high freq side of the fence
+        partial1percent = partial1 / b[i] # find how much of the partial band we are taking, then multiply the energy by it. if fend & fences[1] are equal value of b[i] irrelevant: 0/x
+    partial1e = e[i] * partial1percent    # if equal this will be zero
+    partial1eb = partial1e * b[i]         # need to get the bandwidth part of the equation in here
+    print "high freq fenced frequency band " + str(round(1.0/f[i], 1)) + "(" + str(round(f[i], 4)) + ") is " + str(round(partial1percent*100, 1)) + "%"
+    # same as above for opposite end of fence
     j = 0
     if fences[0] == 1.0/40:
         partial2percent = 1
     else:
         while j < len(f):
-            if round(f[j], 3) >= fences[0]:
-                j -= 1
-                # print f[j], j
+            fbegin = f[j] + .5 * b[j]       # get high frequency / low period end of frequency band
+            if round(fbegin, 3) > fences[0]:
+                # j -= 1
                 break
-            j +=1
-        fbegin = f[j] - .5 * b[j]
-        partial2 = fences[0] - fbegin
+            elif round(fbegin, 3) == fences[0]:
+                # print f[i], i
+                j += 1
+                break                     # i is index of last full band now
+            j+=1
+        partial2 = fbegin - fences[0]
+        #     if round(f[j], 3) >= fences[0]:
+        #         j -= 1
+        #         # print f[j], j
+        #         break
+        #     j +=1
+        # fbegin = f[j] + .5 * b[j]
+        # partial2 = fbegin - fences[0]
         partial2percent = partial2 / b[j]
     partial2e = e[j] * partial2percent
-    mide = np.sum(e[j+1:i])
-    bande = partial2e + mide + partial1e
+    partial2eb = partial2e * b[j]
+    print "low freq fenced frequency band " + str(round(1.0/f[j], 1)) + " (" + str(round(f[j], 4)) + ") is " + str(round(partial2percent*100, 1)) + "%"
+    mide = np.sum(e[j+1:i]* b[j+1:i])     # add up energy * bandwidth for each freq
+    fullBands = f[j+1:i]
+    printFullBands = ''.join([str(round(1.0/fb,4)) + ' (' + str(round(fb,4)) + ') \n' for fb in fullBands])
+    print "middle, full frequency bands: \n" + printFullBands
+    bande = (partial2eb + mide + partial1eb) * 10000
     return bande
 
-def e():
-    e = [0,0,0,1.663,2.16,.648,.281,.346,.95,1.858,1.296,1.188,1.296,1.188,1.274,1.145,.389,.346,.302,.151,.13,.108,.086,.086,.086,.13,.065,.43,.086,.22,.22,.22,.22,
-         .22,.22,.22,.22,0,.22,.22,0,.22,0,0,0,0,0,0]
-    e= [0,0,0,2.511,2.7,.459,.432,.756,1.026,1.107,1.242,1.242,.891,.432,.648,.324,.351,.189,.108,.135,.081,.162,.081,.108,.054,.081,.054,.027,.054,.027,0,.027,.027] + [0]*13
-    e = [0]*6 + [.065,.52,.65,.1495,2.6,3.445,3.445,4.225,6.5,5.265,5.33,2.47,1.69,1.69,1.69,1.56,1.17,1.17,.52,.26,.585,.78,.325,.39,.455,.26,.26,.195,.13,.13,.13,.065,.13,.065] + [0]*4
-    return e
+# def e():
+#     e = [0,0,0,1.663,2.16,.648,.281,.346,.95,1.858,1.296,1.188,1.296,1.188,1.274,1.145,.389,.346,.302,.151,.13,.108,.086,.086,.086,.13,.065,.43,.086,.22,.22,.22,.22,
+#          .22,.22,.22,.22,0,.22,.22,0,.22,0,0,0,0,0,0]
+#     e= [0,0,0,2.511,2.7,.459,.432,.756,1.026,1.107,1.242,1.242,.891,.432,.648,.324,.351,.189,.108,.135,.081,.162,.081,.108,.054,.081,.054,.027,.054,.027,0,.027,.027] + [0]*13
+#     e = [0]*6 + [.065,.52,.65,.1495,2.6,3.445,3.445,4.225,6.5,5.265,5.33,2.47,1.69,1.69,1.69,1.56,1.17,1.17,.52,.26,.585,.78,.325,.39,.455,.26,.26,.195,.13,.13,.13,.065,.13,.065] + [0]*4
+#     # return e
 
 class ndbcSpectra(object):
     def __init__(self, buoy='46232',datasource='http',e=[], **kwargs):
@@ -115,6 +156,8 @@ class ndbcSpectra(object):
             self.data = localDataSpec(buoy)
         else:
             self.data = httpDataSpec(buoy)
+            self.dataPDirection = httpDataSpec(buoy, 'swdir2')
+            self.dataMDirection = httpDataSpec(buoy, 'swdir')
         self.el = []
 
         u = kwargs.get('units', 'ft') # default is to convert m to ft
@@ -130,8 +173,10 @@ class ndbcSpectra(object):
             ds = arrayDataSpec(data_spec(self.data),e)
         else:
             ds = data_spec(self.data)
-
-        self.spectra = np.array(ds,[('e', 'float16'),('f','float16'),('b','float16')])
+        dsd = [d + (0,0) for d in ds] # faster to initialize 
+        self.spectra = np.array(dsd,[('e', 'float16'),('f','float16'),('b','float16'),('pd','int16'),('md','int16')])
+        self.spectra['pd'] = [i[0] for i in data_spec(self.dataPDirection)]
+        self.spectra['md'] = [i[0] for i in data_spec(self.dataMDirection)]
         self.Hs = self.units*4*sqrt(np.sum(self.spectra['e']*self.spectra['b']))
         self.json = self.jsonify()
 
@@ -172,11 +217,11 @@ class ndbcSpectra(object):
         # band22 = np.sum(spectra2['e'][0:4]) + (spectra2['e'][4] * (1.0/22 - (spectra2['f'][4]-.5 * spectra2['b'][4])) / spectra2['b'][4])
         spectra = self.spectra
         o = 1.0
-        nineBands = (o/40,o/22,o/18,o/16,o/14,o/12,o/10,o/8,o/6,spectra['f'][-1]-.0025)
+        nineBands = (o/40,o/22,o/18,o/16,o/14,o/12,o/10,o/8,o/6,spectra['f'][-1])   # -.0025 used to subtract from spectra[f][-1]
         fence = 0
         energyList = []
         while fence < 9:
-            energyList.append(band(spectra, (nineBands[fence], nineBands[fence+1])) * 10000 * .005)
+            energyList.append(band(spectra, (nineBands[fence], nineBands[fence+1]))) # removed 10000 * .005 from this line on 4/26/16
             fence +=1
         self.el = [round(2*4*self.units*.01*sqrt(int(v)), 2) for v in energyList]
         if __name__ != "__main__":
