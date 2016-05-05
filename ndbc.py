@@ -78,6 +78,7 @@ def data_spec(datas):
                     b = .0075
                 elif .012 < round(b,3) < .018:
                     b = .015
+                print b
                 # b2 = {j: abs(b1-j) for j in bandwidths}
                 # v = b2.values()
                 # k = b2.keys()
@@ -95,7 +96,7 @@ def data_spec(datas):
 
 def band(spec, fences):
     """spec is multidim numpy array, fences is tuple containing high and low frequency for band"""
-    # todo fix this shit
+
     print "high / low freq fences: " + str(round(1.0/fences[1], 1)) + "(" + str(round(fences[1], 6)) + ")" \
           + ' ' + str(round(1.0/fences[0], 1)) + "(" + str(round(fences[0], 6)) + ")"
     e = spec['e']
@@ -108,7 +109,12 @@ def band(spec, fences):
         i = len(f) - 1
     else:
         while i < len(f):
-            fend = f[i] + .5 * b[i]       # get high frequency / low period end of frequency band
+            # if round(b[i], 2) == .075:
+            #     fend = f[i] + .004        # should come out to .105 for most buoys
+            # elif round(b[i],2) == .015:
+            #     fend = f[i] + .01         # should come out to .375 for 46086 & similar buoys
+            # else:
+            fend = f[i] + .5 * b[i]       # get high frequency / low period end of equency band
             if round(fend, 3) > fences[1]:
                 # i -= 1
                 break
@@ -117,7 +123,7 @@ def band(spec, fences):
                 i += 1
                 break                     # i is index of last full band now
             i+=1
-        partial1 = fend - fences[1]       # partial1 is band of spectra between low end of freq band and the high freq side of the fence
+        partial1 = abs(fend - fences[1])     # partial1 is band of spectra between low end of freq band and the high freq side of the fence
         partial1percent = 1 - partial1 / b[i] # find how much of the partial band we are taking, then multiply the energy by it. if fend & fences[1] are equal value of b[i] irrelevant: 0/x
     partial1e = e[i] * partial1percent    # if equal this will be zero
     partial1eb = partial1e * b[i]         # need to get the bandwidth part of the equation in here
@@ -128,6 +134,11 @@ def band(spec, fences):
         partial2percent = 1
     else:
         while j < len(f):
+            # if round(b[j], 2) == .075:
+            #     fbegin = f[j] - .0035        # should come out to .105 for most buoys
+            # elif round(b[j],2) == .015:
+            #     fbegin = f[j] - .01         # should come out to .355 for 46086 & similar buoys
+            # else:
             fbegin = f[j] + .5 * b[j]       # get low frequency / high period end of frequency band
             if round(fbegin, 3) > fences[0]:
                 # j -= 1
@@ -145,7 +156,7 @@ def band(spec, fences):
         #     j +=1
         # fbegin = f[j] + .5 * b[j]
         # partial2 = fbegin - fences[0]
-        partial2percent = partial2 / b[j]
+        partial2percent = abs(partial2 / b[j])
     partial2e = e[j] * partial2percent
     partial2eb = partial2e * b[j]
     print "low freq fenced frequency band " + str(round(1.0/f[j], 1)) + " (" + str(round(f[j], 4)) + ") is " + str(round(partial2percent*100, 1)) + "%"
@@ -206,7 +217,7 @@ class ndbcSpectra(object):
             jsList = {k:v for k,v in zip(keys,b)}
         elif dataType in ['hp', 'heightPeriod', 'heightPeriodDirection', 'HeightPeriodDirections']:
             b = self.heightPeriodDirections()
-            jsList = {round(p,digits):[round(h,digits),pd,md] for p,h,pd,md in zip(b[:,1],b[:,0],b[:,2],b[:,3])}
+            jsList = {round(p,digits):{'height':round(h,digits),'peak direction':round(pd,0),'mean direction':round(md,0)} for p,h,pd,md in zip(b[:,1],b[:,0],b[:,2],b[:,3])}
 
         js[dataType] = jsList
 
@@ -225,7 +236,10 @@ class ndbcSpectra(object):
         # band22 = np.sum(spectra2['e'][0:4]) + (spectra2['e'][4] * (1.0/22 - (spectra2['f'][4]-.5 * spectra2['b'][4])) / spectra2['b'][4])
         spectra = self.spectra
         o = 1.0
-        nineBands = (o/40,o/22,o/18,o/16,o/14,o/12,o/10,o/8,o/6,spectra['f'][-1])   # -.0025 used to subtract from spectra[f][-1]
+        endBand = o/2
+        if spectra['f'][-1] < endBand:
+            endBand = spectra['f'][-1]
+        nineBands = (o/40,o/22,o/18,o/16,o/14,o/12,o/10,o/8,o/6,endBand)
         fence = 0
         # energyList = []
         while fence < 9:
