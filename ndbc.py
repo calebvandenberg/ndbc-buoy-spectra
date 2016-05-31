@@ -47,13 +47,17 @@ def arrayDataSpec(ds, e=[0,0,0,.028,.154,1.148,.28,.28,.168,.336,.924,1.4,.63,1.
     return newds
 
 def data_spec(datas):
-    """returns a list of tuples for each frequency band from raw data dump
+    """
+    returns a list of tuples for each frequency band from raw data dump
     datas is straight out of httpDataSpec
     coded for energy but works with wave direction too.
     returns energy/direction, frequency, and bandwidth
     # sep_freq = '9.999'
     # datas = data.split(sep_freq)[1]
-    # bandwidths = [.005,.0075,.01,.015,.2]"""
+    # bandwidths = [.005,.0075,.01,.015,.2]
+    """
+
+    errlog = []
 
     l = []
     # semi-hacky way of determining if data is energy or direction
@@ -78,13 +82,15 @@ def data_spec(datas):
                     b = .0075
                 elif .012 < round(b,3) < .018:
                     b = .015
-                print b
+                errlog.append(b)
                 # b2 = {j: abs(b1-j) for j in bandwidths}
                 # v = b2.values()
                 # k = b2.keys()
                 # b = k[v.index(min(v))]
             l.append((e,f,b))
         i+=1
+    if __name__ != '__main__':
+        print [i for i in errlog]
     return l
 
 # def e():
@@ -96,8 +102,8 @@ def data_spec(datas):
 
 def band(spec, fences):
     """spec is multidim numpy array, fences is tuple containing high and low frequency for band"""
-
-    print "high / low freq fences: " + str(round(1.0/fences[1], 1)) + "(" + str(round(fences[1], 6)) + ")" \
+    errlog = []
+    errlog += "high / low freq fences: " + str(round(1.0/fences[1], 1)) + "(" + str(round(fences[1], 6)) + ")" \
           + ' ' + str(round(1.0/fences[0], 1)) + "(" + str(round(fences[0], 6)) + ")"
     e = spec['e']
     f = spec['f']
@@ -127,7 +133,7 @@ def band(spec, fences):
         partial1percent = 1 - partial1 / b[i] # find how much of the partial band we are taking, then multiply the energy by it. if fend & fences[1] are equal value of b[i] irrelevant: 0/x
     partial1e = e[i] * partial1percent    # if equal this will be zero
     partial1eb = partial1e * b[i]         # need to get the bandwidth part of the equation in here
-    print "high freq fenced frequency band " + str(round(1.0/f[i], 1)) + "(" + str(round(f[i], 4)) + ") is " + str(round(partial1percent*100, 1)) + "%"
+    errlog.append("high freq fenced frequency band " + str(round(1.0/f[i], 1)) + "(" + str(round(f[i], 4)) + ") is " + str(round(partial1percent*100, 1)) + "%")
     # same as above for opposite end of fence
     j = 0
     if fences[0] == 1.0/40:
@@ -159,12 +165,15 @@ def band(spec, fences):
         partial2percent = abs(partial2 / b[j])
     partial2e = e[j] * partial2percent
     partial2eb = partial2e * b[j]
-    print "low freq fenced frequency band " + str(round(1.0/f[j], 1)) + " (" + str(round(f[j], 4)) + ") is " + str(round(partial2percent*100, 1)) + "%"
+    errlog.append("low freq fenced frequency band " + str(round(1.0/f[j], 1)) + " (" + str(round(f[j], 4)) + ") is " + str(round(partial2percent*100, 1)) + "%")
     mide = np.sum(e[j+1:i]* b[j+1:i])     # add up energy * bandwidth for each freq
     fullBands = f[j+1:i]
     printFullBands = ''.join([str(round(1.0/fb,4)) + ' (' + str(round(fb,4)) + ') \n' for fb in fullBands])
-    print "middle, full frequency bands: \n" + printFullBands
+    errlog.append("middle, full frequency bands: \n" + printFullBands)
     bande = (partial2eb + mide + partial1eb) * 10000
+    if __name__ != "__main__":
+        print [i for i in errlog]
+
     return bande
 
 class ndbcSpectra(object):
@@ -285,7 +294,6 @@ def main():
             data = bs.heightPeriodDirections()
         print data
         return data
-
 
 if __name__ == "__main__":
     main()
