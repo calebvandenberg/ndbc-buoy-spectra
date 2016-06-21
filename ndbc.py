@@ -1,7 +1,7 @@
 __author__ = 'Caleb'
 from urllib2 import urlopen, HTTPError, URLError
 import datetime
-from math import sqrt
+from math import sqrt, sin,cos,atan,degrees,radians
 import numpy as np
 import sys
 from os import path
@@ -100,14 +100,40 @@ def data_spec(datas):
 #     e = [0]*6 + [.065,.52,.65,.1495,2.6,3.445,3.445,4.225,6.5,5.265,5.33,2.47,1.69,1.69,1.69,1.56,1.17,1.17,.52,.26,.585,.78,.325,.39,.455,.26,.26,.195,.13,.13,.13,.065,.13,.065] + [0]*4
 #     # return e
 
+def meanDegree(angles, e):
+    """
+    :param angles: a list of degrees for each frequency in the band
+    :param e: the amount of energy corresponding to the angle
+    This function will throw out the angle value if the energy for that value is very low.
+    :return: the mean of the freq degrees. May be NoneType (null)
+    """
+    angles = [radians(a[0]) for a in zip(angles,e) if a[0] != 999 and a[1] > 0.005]
+    alength = len(angles)
+    if alength < 1:
+        return None
+    i,s,c=(0,)*3
+    while i < alength:
+        s += sin(angles[i])
+        c += cos(angles[i])
+        i+=1
+    sbar = s / alength
+    cbar = c / alength
+    abar = degrees(atan(sbar/cbar))
+    if cbar < 0:
+        abar += 180
+    elif sbar < 0:
+        abar += 360
+    return round(abar,1)
+
 def band(spec, fences):
     """spec is multidim numpy array, fences is tuple containing high and low frequency for band"""
     errlog = []
-    errlog += "high / low freq fences: " + str(round(1.0/fences[1], 1)) + "(" + str(round(fences[1], 6)) + ")" \
-          + ' ' + str(round(1.0/fences[0], 1)) + "(" + str(round(fences[0], 6)) + ")"
+    errlog.append("high / low freq fences: " + str(round(1.0/fences[1], 1)) + "(" + str(round(fences[1], 6)) + ")" \
+          + ' ' + str(round(1.0/fences[0], 1)) + "(" + str(round(fences[0], 6)) + ")")
     e = spec['e']
     f = spec['f']
     b = spec['b']
+    d = spec['md']
 
     i = 0
     if fences[1] == spec['f'][-1]:        # this is the shortest frequency so gonna use all of it
@@ -171,10 +197,14 @@ def band(spec, fences):
     printFullBands = ''.join([str(round(1.0/fb,4)) + ' (' + str(round(fb,4)) + ') \n' for fb in fullBands])
     errlog.append("middle, full frequency bands: \n" + printFullBands)
     bande = (partial2eb + mide + partial1eb) * 10000
+    # provisional direction data
+    meanDirection = meanDegree(d[j:i],e[j:i])
+    errlog.append('mean direction: %s, # of values: %i' % (meanDirection, len(d[j:i])))
+
     if __name__ != "__main__":
         print [i for i in errlog]
 
-    return bande
+    return bande, meanDirection
 
 class ndbcSpectra(object):
     def __init__(self, buoy='46232',datasource='http',e=[], **kwargs):
@@ -187,6 +217,7 @@ class ndbcSpectra(object):
             self.dataMDirection = httpDataSpec(buoy, 'swdir')
         self.nineHeights = []
         self.nineEnergy = []
+        self.nineDirections = []
 
         u = kwargs.get('units', 'ft') # default is to convert m to ft
         if u in ['m', 'metric', 'meters']:
@@ -223,7 +254,7 @@ class ndbcSpectra(object):
         elif dataType is '9band':
             b = self.nineBand()
             keys = ['22+','20','17','15','13','11','9','7','4']
-            jsList = {k:v for k,v in zip(keys,b)}
+            jsList = {k:(v,v2) for k,v,v2 in zip(keys,b[0],b[1])}
         elif dataType in ['hp', 'heightPeriod', 'heightPeriodDirection', 'HeightPeriodDirections']:
             b = self.heightPeriodDirections()
             jsList = {round(p,digits):{'height':round(h,digits),'peak direction':round(pd,0),'mean direction':round(md,0)} for p,h,pd,md in zip(b[:,1],b[:,0],b[:,2],b[:,3])}
@@ -254,15 +285,15 @@ class ndbcSpectra(object):
         while fence < 9:
             self.nineEnergy.append(band(spectra, (nineBands[fence], nineBands[fence+1]))) # removed 10000 * .005 from this line on 4/26/16
             fence +=1
-        self.nineHeights = [round(2*4*self.units*.01*sqrt(int(v)), 2) for v in self.nineEnergy]
+        self.nineHeights = [round(2*4*self.units*.01*sqrt(int(v[0])), 2) for v in self.nineEnergy]
+        self.nineDirections = [v[1] for v in self.nineEnergy]
         if __name__ != "__main__":
-            print __name__
             print self.nineEnergy
             print 'buoy: ', self.buoy
             print 'time: ', self.timestamp.isoformat()
             print '9-band: ', self.nineHeights
             print 'Hs: ', self.Hs
-        return self.nineHeights
+        return self.nineHeights, self.nineDirections
 
 def main():
     parser = argparse.ArgumentParser(description='Process data from National Data Buoy Center (ndbc) buoys')
