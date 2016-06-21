@@ -254,7 +254,7 @@ class ndbcSpectra(object):
         elif dataType is '9band':
             b = self.nineBand()
             keys = ['22+','20','17','15','13','11','9','7','4']
-            jsList = {k:(v,v2) for k,v,v2 in zip(keys,b[0],b[1])}
+            jsList = {k:{'height':v,'direction':v2} for k,v,v2 in zip(keys,b[0],b[1])}
         elif dataType in ['hp', 'heightPeriod', 'heightPeriodDirection', 'HeightPeriodDirections']:
             b = self.heightPeriodDirections()
             jsList = {round(p,digits):{'height':round(h,digits),'peak direction':round(pd,0),'mean direction':round(md,0)} for p,h,pd,md in zip(b[:,1],b[:,0],b[:,2],b[:,3])}
