@@ -1,0 +1,264 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$buoyname Detailed Wave Height and Surf Conditions on Swell Matrix</title>
+<script src="../d3.3.5.17.min.js"></script>
+<script src="../dimple.v2.1.6.min.js"></script>
+<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700,700italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+<link rel="icon" type="image/png" href="../faveicon.ico">
+<link rel="apple-touch-icon" type="image/png" href="../apple-icon-114px.png">
+<meta name="Description" content="Surf report with detailed swell graphs and wave set information for $buoyname buoy. Wave period, height, and direction updated twice hourly. Real-time coastal wind and tide conditions.">
+<meta property="og:image" content="http://www.swellmatrix.com/fbpelicans.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="956">
+<meta property="og:image:height" content="588">
+<style type="text/css">
+.help{animation:scaleUp .4s 0s 1 forwards;transform-origin:top;display:none;font:16px/1.3 'Noto Sans', sans-serif;text-align:left;background:hsla(0, 0%, 100%, .9);padding:5px 20px;min-width:290px;margin:0 10%}.que{text-align:left;font-size:20px}.q-circle{padding:2px 5px;width:16px;height:16px;vertical-align:bottom}.close{text-align:right}@keyframes scaleUp {0%{transform:scaleY(0);}100%{transform:scaleY(1);}}.reOpt{background:hsla(40, 40%, 90%, .8)}form > div{display:none;-webkit-opacity:0;-moz-opacity:0;opacity:0}.fadeIn{animation:fadein .4s 0s 1 forwards}.fadeInDelayed{animation:fadein 1s .7s 1 forwards}@keyframes fadein {0%{opacity:0;}100%{opacity:1;}}#q1{display:block;opacity:1}button{-moz-box-shadow:inset 0 1px 0 0 #fff;-webkit-box-shadow:inset 0 1px 0 0 #fff;box-shadow:inset 0 1px 0 0 #fff;background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f9f9f9), color-stop(1, #e9e9e9));background:-moz-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);background:-webkit-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);background:-ms-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);background:linear-gradient(to bottom, #f9f9f9 5%, #e9e9e9 100%);background-color:#f9f9f9;-moz-border-radius:6px;-webkit-border-radius:6px;border-radius:6px;border:1px solid #dcdcdc;display:inline-block;color:#666;font:bold 14px 'Noto Sans', sans-serif;padding:6px 16px;text-decoration:none;text-shadow:0 1px 0 #fff;margin-top:1em}button:hover{background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #e9e9e9), color-stop(1, #f9f9f9));background:-moz-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);background:-webkit-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);background:-o-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);background:-ms-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);background:linear-gradient(to bottom, #e9e9e9 5%, #f9f9f9 100%);filter:progid: DXImageTransform.Microsoft.gradient(startColorstr='#e9e9e9', endColorstr='#f9f9f9', GradientType=0);background-color:#e9e9e9}button:active{position:relative;top:1px}#survey label{display:block;padding-top:1em}#survey{background:hsla(10, 90%, 80%, .6);padding:1em;width:60%;min-width:320px;margin:3px auto 5px;box-sizing:border-box;box-shadow:1px 3px 9px 1px hsla(207, 40%, 80%, .8)}textarea{width:20em;height:4em}.spinner{width:15px;height:15px;-webkit-animation:sweep 1s 10 linear;-moz-animation:sweep 1s 10 linear;animation:sweep 1s 10 linear;border-radius:7px;border-bottom:1px solid #003866}@-webkit-keyframes sweep {to{-webkit-transform:rotate(360deg);}}@-moz-keyframes sweep {to{-moz-transform:rotate(360deg);}}@keyframes sweep {to{transform:rotate(360deg);}}#dirspec{width:100vw;box-sizing:border-box;background:hsla(0, 100%, 100%, .9);padding:35px 10px;margin:0 auto;overflow-x:scroll}#wind{background:hsla(290, 0%, 88%, .8);color:#001c33;box-sizing:border-box;padding:30px 10px}#wx,#wx a{margin:auto;border-collapse:collapse;font-weight:400}#wx tr{border-bottom:2px solid #003866;text-align:left}td{padding:3px .5em;vertical-align:text-top}#wx tr:last-child{border:none}#showData{display:block;margin:3px auto}.tideAnno{padding:3px;width:2em;font:bold 10px/1 'Noto Sans', sans-serif;color:black;background:hsla(0, 100%, 100%, .8);border:0}#tidegraph{width:80vw;height:60vh;margin:auto;box-sizing:border-box;padding-right:30px}.tide{width:100%;height:70vh;background:hsla(207, 100%, 80%, .8);margin:auto;box-sizing:border-box}.or{font-style:italic;color:hsl(207, 100%, 20%);text-align:center}body{margin:0;padding:0;font:700 16px/1.2 'Noto Sans', sans-serif;color:hsl(207,100%,10%);background:url('../pelicans-m.png') right 75% no-repeat fixed/contain;text-align:center}#gt,#lt{font:700 50px/1 'Noto Sans', sans-serif;color:hsla(0, 0%, 70%, .8);display:inline-block;margin:12% 0 0;transform:scale(1, 4);text-shadow:2px 2px 10px hsla(207, 100%, 80%, .9)}#gt:hover,#lt:hover{color:hsla(123, 100%, 70%, .8)}#lt{float:left;clear:none;margin-left:1%}#gt{float:right;clear:none;margin-right:1%}#slideImg{width:80vw;height:auto;margin:0 auto;clear:none}header{font:700 2.3em/1.2 'Noto Sans', sans-serif;color:hsl(207,100%,10%);// background:url(../background.jpg) #001c33;text-align:center;width:100%;padding:5px 0 10px;// padding-bottom:4px;// box-shadow:1px 1px 3px hsla(207, 100%, 10%, .8)}header>a{text-decoration:none;font:700 1.8em/1.2 'Noto Sans', sans-serif;color:hsla(40, 100%, 75%, .9);border:1px solid #320;padding:2px;border-radius:.2em}footer{margin:0 auto;padding:10px 0;background:#ffd47f}footer ul{padding:0}footer ul a{font-size:18px;color:#000}nav{box-sizing:border-box;width:100%;margin:10px auto;text-align:center;padding-bottom:10px}#buoy{font:700 22px/1.2 'Noto Sans', sans-serif;border:0;display:block;box-sizing:border-box;color:#000;background:hsla(0, 0%, 100%, .8);width:auto;margin:0 20px;max-width:99%}#buoy>option{color:#000}h1,h1 a{color:hsl(207,100%,10%);font:700 34px/1.2 'Noto Sans', sans-serif;margin:0;padding:0 25px;text-shadow:1px 1px 3px hsla(207, 100%, 80%, .8)}h2{font-size:22px;font-weight:400;font-style:italic;margin:0;padding:5px 0}a{font-weight:700;text-decoration:none;color:#001c33}a:hover{color:#0c5935}#menu{position:absolute;top:0;left:5px;padding:5px;box-sizing:border-box;float:left;clear:both;z-index:10;animation:scla .4s .7s 1}ul a{font:700 75%/1.1 'Noto Sans', sans-serif;color:hsla(40, 100%, 75%, .85);text-decoration:none}#showDiv{width:100%;max-width:100%;background:hsla(0, 75%, 0%, .95);border-radius:5%;overflow-y:scroll;height:100%;display:none;position:fixed;top:0;left:0;min-width:5em;border:0;z-index:20;color:hsla(40, 100%, 75%, .85);text-align:left;margin:auto}li{list-style:none}#graphdiv{width:100%;height:500px}[role=main]{padding:10px 0;height:auto;min-height:200px;width:auto}#share{text-align:left;padding:3px 5px;background:hsla(207, 100%, 90%, .5);box-shadow:0 0 3px hsla(207, 100%, 90%, .7)}#fb,#tw,#ct,#share h2{padding:2px 2px;margin:2px 1px}#tw::before{content:url("https://g.twimg.com/dev/documentation/image/Twitter_logo_blue_16.png");vertical-align:middle;padding-right:5px}#fb::before{content:url("http://www.facebook.com/favicon.ico");vertical-align:middle;padding:5px 0}#ct::before{content:url("../paper-airplane-icon.png");padding-right:5px;vertical-align:middle}#ctbox{font:16px/1.2 'Noto Sans', sans-serif;height:4.5em;width:30em;max-width:90%;background:hsla(0, 0%, 99%, .7);color:black;display:none;opacity:0;overflow:hidden;padding:5px;vertical-align:top;margin:5px;border:1px solid gray;box-shadow:1px 2px 10px hsla(207, 100%, 50%, .8)}#share h2{font-size:20px}#foot,#foot div,#foot li{text-align:left}#foot{background:linear-gradient(hsla(123, 100%, 50%, .1), hsla(123, 100%, 80%, .8));margin:0;padding:12px 6px}#foot div,#foot ul{margin:0;padding:0;font:700 24px/1.4 'Noto Sans', sans-serif;color:#001c33;min-width:300px;max-width:100vw}#foot ul a{color:#001c33}#foot ul li::before{content:"⇨";text-shadow:2px 2px 5px hsla(207, 10%, 10%, .8);padding:2px 12px;vertical-align:top}select{max-width:95%;font-size:32px}#foot h2{font:700 italic 32px/1.2 'Noto Sans', sans-serif;color:hsla(207, 100%, 10%, .95);text-shadow:1px 2px 2px hsla(207, 10%, 42%, .9);text-align:center}#buoy{display:inline-block}footer li{display:inline-table;width:8em;padding:10px}nav{box-sizing:border-box;width:100%;margin:10px auto;text-align:center;padding-bottom:10px}@keyframes scla {0%,100%{transform:scale(1, 1);}25%{transform:scale(.1, .1);}50%{transform:scale(1.2, 1.2);}}@media screen and (min-width: 800px){body{background:url('../pelicans.png') right no-repeat fixed}[role=main]{height:auto;min-height:400px}#slideImg{width:60vw;height:auto;margin:0 auto}#gt,#lt{font-size:120px;margin:20% 10px 0;transform:scale(1, 4)}#showDiv{display:none;position:fixed;top:00px;left:0;min-width:5em;max-width:8em;height:auto;overflow-y:auto;border:0;border-radius:0 10% 10% 0;z-index:2;background:hsla(0, 100%, 0%, .75);color:hsla(40, 100%, 75%, .85);text-align:left}#showDiv>ul{padding:1px 4px;margin:6px;list-style:none;position:relative;display:block}#menu{position:fixed;left:10px;top:10px}#fb,#tw,#ct,#share h2{padding:3px 12px;margin:2px 10px}#share{padding:5px 5vw}#ctbox{height:2.2em;max-width:75%}#foot{padding:12px 34%}#foot ul{min-width:16em;padding-left:30px}#dirspec{overflow-x:auto}}@media screen and (max-height: 500px){#graphdiv{height:100vh;width:98%}}
+</style>
+<script>
+function heightCalc(period, height) {
+    // =D2*9.81^0.2*(D4*D3^2)^0.4
+    if (height != NaN && period != NaN) {
+    if (height == 0) return 0;
+    var surf = 3.28*.381*Math.pow(9.81,.2)*Math.pow((period*Math.pow((height/3.28), 2)),.4);
+    return Math.round(surf * 10) / 10;
+    }
+}
+
+function divtoggle(parent, sect) {
+    var sect = parent.parentNode.getElementsByClassName(sect)[0];
+    sect.style.display = (sect.style.display  == "block")?"none":"block";
+}
+
+function menutoggle() {
+    document.getElementById("menu").onclick=function(){
+    var showDiv = document.getElementById("showDiv");
+    showDiv.style.display = (showDiv.style.display  == "block")?"none":"block";
+    };
+    document.getElementById("showDiv").style.display="block";
+}
+
+function nextImage(place) {
+    var foo = document.getElementById(place);
+    var graphdiv = document.getElementById("graph");
+    var foosrc = foo.data;
+    var fooa = foo.data.substr(0, foo.data.length-5);
+    var foob = foo.data.substr(foo.data.length-4);
+
+    var newNum = parseInt(foo.data.charAt(foo.data.length -5)) + 1;
+    if (newNum <= 6) {
+        graphdiv.innerHTML = '<object type="image/svg+xml" data='+fooa+newNum+foob+' name="slideImg" id="slideImg"></object>';
+    }
+}
+
+function prevImage(place) {
+    var foo = document.getElementById(place);
+    var graphdiv = document.getElementById("graph");
+    var foosrc = foo.data;
+    var fooa = foo.data.substr(0, foo.data.length-5);
+    var foob = foo.data.substr(foo.data.length-4);
+    var newNum = parseInt(foo.data.charAt(foo.data.length -5)) - 1;
+    if (newNum > 0) { graphdiv.innerHTML = '<object type="image/svg+xml" data='+fooa+newNum+foob+' name="slideImg" id="slideImg"></object>'; }
+}
+
+function socialTextBox(bID) {
+    var childBox = document.getElementById(bID);
+    childBox.classList.add('fadeIn');
+    childBox.style.display = 'inline-block';
+    childBox.innerHTML += ' ' + window.location;
+    childBox.focus();
+    childBox.select();
+}
+
+testdata = {};
+
+function drawBandChart(error, nineBandData) {
+  if (error) return console.warn(error);
+  testdata = nineBandData;
+  var index = nineBandData['nineBand'].length -1;
+  maxHeights = [];
+  function maxSurf(bandData) {
+    if (index >0) {
+      maxHeights.push(heightCalc(bandData['band'], bandData['height']));
+      maxSurf(nineBandData['nineBand'][--index]);
+    }
+  }
+  maxSurf(nineBandData['nineBand'][index]);
+  var maxHeight = Math.max.apply(null, maxHeights);
+  svg = dimple.newSvg("#con", "102%", "102%");
+  svg.style("min-height", '400px');
+  myChart = new dimple.chart(svg, nineBandData['nineBand']);
+  myChart.ease = "sin";
+  myChart.height = '75%';
+  var myY = myChart.addMeasureAxis("y", "height");
+  var myZ = myChart.addColorAxis("direction", ["hsl(117, 80%, 20%)", "hsl(207, 100%, 10%)", "hsl(297, 100%, 10%)", "hsl(207, 80%, 20%)", "hsl(117, 100%, 30%)"]);
+  myZ.overrideMin = 0;
+  myZ.overrideMax = 360;
+  myY.ticks = 4;
+  myY.title = "Swell Band Height (feet)";
+  myX = myChart.addCategoryAxis("x", "band");
+  myX.showGridlines = true;
+  myX.title = "Estimated Surf Height: " + maxHeight + " ft";
+  myX.addOrderRule("band", true);
+  mySeries = myChart.addSeries(["band", "height", "direction"], dimple.plot.bar);
+  mySeries.aggregate = dimple.aggregateMethod.avg;
+  mySeries.tooltipFontSize = "16px";
+  mySeries.tooltipFontFamily = "Noto Sans, sans-serif";
+  myChart.assignColor(null, "black", "none");
+  var formatTime = d3.time.format("%a %H:%M %m/%d %p %Z");
+  mySeries.getTooltipText = function (e) {
+    var tooltipStr = [
+     "Height: " + e.aggField[1]
+     ];
+     if (e.aggField[2] != null) {
+       tooltipStr.push("Direction: " + e.aggField[2] + "°");
+     }
+    return tooltipStr;
+    };
+  myChart.draw(400);
+  setTitle(testdata);
+  setstyles(svg);
+  setArrows();
+}
+
+function getData(path) {
+// http://0.0.0.0:3000/json?b=46258&dt=nineBand
+  var script = document.createElement('script');
+  script.id = 'ndbc';
+  script.src = path;
+  document.getElementByTagName('head')[0].appendChild(script);
+}
+
+function data(ndbcJSONData) {
+  ninebanddata = ndbcJSONData;
+}
+
+splitURL = window.location.href.split('?')
+if (splitURL.length > 1 && splitURL[1].length >= 5) {
+  var buoyId = splitURL[1].slice(0,5);
+} else {
+  var buoyId = '$buoyid';
+}
+var ndbcUrl = "http://localhost:3000/json?buoy=" + buoyId + "&datatype=nineBand";
+//var ndbcUrl = "file:///media/removable/UBOAT/scripts/async/ndbc42019.json"
+//ndbcUrl = {"timestamp":"2017-01-20 05:00:00 CST-0600","disclaimer":"Data in this object has not been validated and should be considered a placeholder","nineBand":[{"direction":null,"height":0.0,"band":"22"},{"direction":null,"height":0.0,"band":"20"},{"direction":null,"height":0.0,"band":"17"},{"direction":null,"height":0.0,"band":"15"},{"direction":null,"height":0.0,"band":"13"},{"direction":null,"height":0.11,"band":"11"},{"direction":188.9,"height":1.5,"band":"9"},{"direction":134.0,"height":2.58,"band":"7"},{"direction":159.8,"height":3.47,"band":"4"}],"metadata":{"longitude":-95.352,"name":"Freeport, Tx - 60 Nm South Of Freeport, Tx","latitude":27.907,"id":"42019","timezone":"America\/Chicago"}}
+d3.json(ndbcUrl, drawBandChart);
+function darrow(d) {
+    var c ='';
+    if (d <=0) c= '';
+    else if (0 < d && d < 10) c= '↓';
+    else if(10 <= d && d < 81) c= '↙';
+    else if (81 <= d && d  < 100) c= '←';
+    else if (100 <= d && d < 175) c= '↖';
+    else if (175 <= d && d < 190)  c= '↑';
+    else if (190 <= d && d < 261)   c= '↗';
+    else if (261 <= d && d <= 290)   c= '→';
+    else if (290 <= d && d <= 350)   c= '↘';
+    else if (350 < d) c= '↓';
+    return c
+}
+function setTitle(data) {
+  var div = document.createElement('div');
+  var name = data['metadata']['name'];
+  document.title = name + ' ' + document.title;
+  var timeReader = d3.time.format('%Y-%m-%d %H:%M:%S');
+  var tz = 60 * data['timestamp'].slice(-5,-2) + 1 * data['timestamp'].slice(-2);
+  var usertz = new Date().getTimezoneOffset() * -1;
+  var tzname = data['timestamp'].slice(20,-5);
+  var time = timeReader.parse(data['timestamp'].slice(0,19));
+  time = d3.time.minute.offset(time, tz);
+  var timePrinter = d3.time.format('%b %e, %Y %I:%M%p');
+  var timeString = timePrinter(time);
+  if (name.indexOf("(") > 0) {
+    name = name.slice(0,name.indexOf("("));
+  }
+  if (name.indexOf("-") > 0) {
+    name = name.slice(0,name.indexOf("-"));
+  }
+  div.innerText = name + ' ' + timeString + ' ' + tzname;
+  document.getElementById('con').insertBefore(div, document.getElementById('con').firstChild);
+}
+
+function setstyles(svgstyles) {
+  myX.titleShape.attr("transform", "translate(0,10)");
+  svgstyles.selectAll("text")
+  .style("font-size", "18px")
+  .style("font-family", "Noto Sans, sans-serif");
+}
+function setArrows() {
+  xarray = svg.select(".dimple-axis-x").selectAll(".dimple-custom-axis-label")[0];
+  nineSeries = testdata['nineBand'];
+  xarray.map(function (x) {
+   var i=nineSeries.length - 1;
+   function axisArrow(i) {
+    if (i >= 0) {
+      if (nineSeries[i]['direction'] != null && x.innerHTML == nineSeries[i]['band']) {
+        x.innerHTML += " " + darrow(nineSeries[i]['direction']);
+      } else {
+        axisArrow(--i);
+      }
+    }
+   }
+   axisArrow(i);
+
+  }); //end map
+}
+</script>
+</head><body><header>
+<h1><a href='http://swellmatrix.com'>Swell Matrix</a></h1><h2>Current Surf Conditions</h2>
+$menu
+</header><div role="main">
+<div id="con" style="height: 500px; width: 95vw;background:none;padding:0 10px 20px;margin:auto"></div>
+<div onclick="divtoggle(this, 'help')" class="que" style="text-align: center">
+<img src='../question-circle-32.png' alt="?" class="q-circle">Help</div>
+<div class="help">The 9-band height gives the 30-minute height and direction for each swell component.<br>
+Long, gradual swells are on the left, short steep chop is on the right.<br>
+Tap or hover over a bar to see the exact height and direction of the wave period band.<br>
+The shape of the graph's component swells tells you about the sea state: <br>A single peak on the left half of the graph indicates a clean, strong swell. These longer period waves are more powerful and translate to higher surf.<br>
+Broad or multiple peaks, usually on the right side of the graph, are generated nearby and may indicate bumpier, more confused seas.<br>
+The last bar on the right measures short-period wind waves and chop (6-2 second periods). Wave heights in open water may reach the height indicated, but surf heights for
+wave periods this short are much lower and are usually not surfable.
+<div class="close"><span onclick="divtoggle(this.parentElement.parentElement, 'help')">X close</span></div>
+</div></div>
+<div id="share"><h2>Share the waves! </h2>
+<button id="fb" onclick="window.open('http://www.facebook.com/sharer.php?u=http%3A%2F%2Fswellmatrix.com%2Fcurrent%2F${buoyid}.html')">Facebook</button>
+<button id="tw" onclick="window.open('http://twitter.com/share?text=Check%20out%20the%20waves%20on%20the%20${buoyname}%20buoy!&url=http%3A%2F%2Fswellmatrix.com%2Fcurrent%2F${buoyid}.html&via=swellmatrix')">Twitter</button>
+<button id="ct" onclick="socialTextBox('ctbox')">Send as text</button>
+<textarea id="ctbox">Check out the waves on the $buoyname buoy!</textarea>
+</div>
+<div id="dirspec">
+<h2>Directional Spectrum</h2>
+ Coming Soon!
+ <div onclick="divtoggle(this, 'help')" class="que"><img src='../question-circle-32.png' alt="?" class="q-circle">Help</div>
+<div class="help">This graph shows the direction and period of the wave energy.<br>
+Energy closer to the center of the circle is longer-period and results in larger breaking waves.<br>
+A small bright point on the graph indicates a clean, focused swell. <br>Broad areas of blue are disorganized wind waves and chop.
+<div class="close"><span onclick="divtoggle(this.parentElement.parentElement, 'help')">X close</span></div>
+</div></div>
+$foot
+</body><script>
+window.onresize = function () {
+    myChart.draw(0, true);
+ //   setstyles(svg);
+};
+
+function centerHorizontal() {
+    var imgToCenter = document.getElementById('spectrum');
+    imgToCenter.parentElement.scrollLeft = (imgToCenter.width - window.innerWidth) / 2
+}
+//window.onload = centerHorizontal;
+
+var gaProperty = 'UA-64085617-1';
+var disableStr = 'ga-disable-' + gaProperty;
+if (document.cookie.indexOf(disableStr + '=true') > -1) {
+  window[disableStr] = true;
+}
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-64085617-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</html>
