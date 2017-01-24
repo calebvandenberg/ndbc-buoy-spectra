@@ -45,27 +45,26 @@ def send_meta(request):
                 if len(data) > 0:
                     return sanic.response.json(data[0])
                 else:
-                    return sanic.response.text("Not Found")
+                    return sanic.response.text("Not Found", status=404)
         except BaseException as e:
+            return sanic.response.text("Error", status=502)
             print(e)
 
 @app.route("/ndbc/<buoyid>", methods=["GET"])
 async def ndbc(request, buoyid):
-    # print(request.args)
-    # params = sanitize_params(request.args)
     try:
-        loop = get_event_loop()
-        buoy_meta = (i for i in buoydata if i['buoy'] == buoyid)
+        buoy_meta = [i for i in buoydata if i['id'] == buoyid][0]
         if buoy_meta:
             buoyname = buoy_meta['name']
         else:
             buoyname = buoyid
-        async with aiofiles.open("./template/ndbc_template.html", loop=loop) as f:
+        async with aiofiles.open("./template/ndbc_template.html", loop=app.loop) as f:
             html = await f.read()
-            t = Template(html).substitute(uoyname=buoyname, buoyid=buoyid)
+            t = Template(html).substitute(buoyname=buoyname, buoyid=buoyid)
         return sanic.response.html(t)
     except BaseException as e:
         print(e)
+        return sanic.response.text("Error", status=500)
 
 @app.route("/json", methods=["GET"])
 async def json(request):
@@ -89,6 +88,7 @@ async def json(request):
                 return sanic.response.json(data)
         except BaseException as e:
             print(e)
+            return sanic.response.text("Error", status=500)
 
 def sanitize_params(params):
     try:
@@ -116,7 +116,7 @@ def sanitize_params(params):
     return clean_params
 
 @app.route("/test", methods=["GET"])
-@sanic_cors.cross_origin(app)
+# @sanic_cors.cross_origin(app) # doesn't work with coroutines- only functions- for some reason
 async def printstuff(stuff='foo'):
     time.sleep(10)
     return sanic.response.text(stuff)
