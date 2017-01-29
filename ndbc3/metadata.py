@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+"""
+metadata.py fetches and returns data from NDBC (National Data Buoy Center)
+It parses a CSV file from NDBC, matching metadata to stations that report full buoy spectra.
+It's currently used for nine-band buoy data.
+"""
 
 # import asyncio
 from aiohttp import ClientSession

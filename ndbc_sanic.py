@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
+"""
+ndbc_sanic.py serves NDBC (National Data Bouy Center) nine-band wave data and buoy metadata as JSON.
+It uses the Sanic asynchronous server framework (similar to Flask)
+Future development will serve all buoy data available on NDBC as JSON
 
-from asyncio import get_event_loop
+Access the API through 2 endpoints:
+/metadata
+buoy ID, name, lat/lon, timezone
+Add ?<buoyID> to retrieve metadata for 1 buoy
+/ndbc/<buoyID>
+Nine-band wave height and direction with timestamp and buoy station's metadata
+"""
+
 from ujson import dumps
 import pytz
 import sanic

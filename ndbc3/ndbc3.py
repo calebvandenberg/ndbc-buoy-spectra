@@ -1,4 +1,19 @@
 #!/usr/bin/env python3
+""""
+ndbc3.py is the wave data-crunching script for py-ndbc-buoy-spectra. It fetches, cleans, evaluates, and returns
+ ocean wave spectral data in a variety of formats. ndbc3 retrieves a buoy's full energy and direction spectra and
+ filters it into buckets for easier analysis by humans.
+
+Data can be fetched from the National Data Buoy Center or retrieved locally
+Data can be returned with minimal processing as energy per frequency, converted to height per frequency, or
+ height and direction by band. The US Army Corps of Engineers uses nine wave bands:
+    22+, 20, 17, 15, 13, 11, 9, 7, and 4.
+ Multiple methods of converting wave energy to height exist, the formula used is the Rayleigh distribution
+ modified to multiply significant wave height by 2 to correspond better to observed trough-to-crest
+ buoy timeseries data.
+Returned data can be formatted as python numpy arrays or JSON objects.
+"""
+
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 import datetime
@@ -10,6 +25,7 @@ import json
 import argparse
 
 def localDataSpec(buoy):
+    """loads buoy data from local drive for testing"""
     try:
         f = open(path.join('c:\\node', buoy + '.data_spec'), 'r')
         d = f.read(1024)
